@@ -5,6 +5,7 @@ from recipes import views
 #router is used to register the viewsets with the router
 router=DefaultRouter()
 router.register('recipes',views.RecipeViewSet)
+router.register('tags', views.TagViewSet)
 
 #app_name is used to create urls for the recipes app we add this because we have multiple apps and we want to avoid conflicts
 app_name='recipes'
