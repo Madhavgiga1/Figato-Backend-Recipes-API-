@@ -1,14 +1,22 @@
 from rest_framework import serializers
 
-from core.models import (Recipe,Tag)
+from core.models import (Recipe,Tag,Ingredient)
 
 #here we have not overridden the create and update methods
 #this is because the create and update methods are already defined in the ModelSerializer class and we dont need to define custom methods
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Ingredient
+        fields=['id','name']
+        read_only_fields=['id']
+
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model=Tag
         fields=['id','name']
         read_only_fields=['id']
+        
 class RecipeSerializer(serializers.ModelSerializer):
     #nested serializer is used to serialize the tags field which is a many to many field
     #nested serializer are serialiwe within serializers that are used to serialize to fields which are objects/model within themselves
@@ -61,6 +69,8 @@ class RecipeDetailSerializer(RecipeSerializer):
     class Meta(RecipeSerializer.Meta):
         #fields is inherited from the parent class serializer
         fields=RecipeSerializer.Meta.fields+['description']
+
+
 
 
     
