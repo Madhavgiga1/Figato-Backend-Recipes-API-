@@ -17,20 +17,23 @@ class TagSerializer(serializers.ModelSerializer):
         fields=['id','name']
         read_only_fields=['id']
 
+#nested serializer is used to serialize the tags field which is a many to many field
+#nested serializer are serialiwe within serializers that are used to serialize to fields which are objects/model within themselves
+#nested serializers are read only by default which means we cannot create objects with help of nested serializers which means we can only used them to 
+#read from our database and serialise that to JSON but to make objects from incoming JSON Data from a POST request we override that method
 class RecipeSerializer(serializers.ModelSerializer):
-    #nested serializer is used to serialize the tags field which is a many to many field
-    #nested serializer are serialiwe within serializers that are used to serialize to fields which are objects/model within themselves
-    #nested serializers are read only by default which means we cannot create objects with help of nested serializers which means we can only used them to 
-    #read from our database and serialise that to JSON but to make objects from incoming JSON Data from a POST request we override that method
-    tags=TagSerializer(many=True,required=False)
-    ingredients=IngredientSerializer(many=True,required=False)
+    """Serializer for recipes."""
+    tags = TagSerializer(many=True, required=False)
+    ingredients = IngredientSerializer(many=True, required=False)
+
     class Meta:
-        #meta is inside the class to define the metadata for the serializer
-        model=Recipe
-        fields=['id','title','time_minutes','price','link','tags'
-                ,'ingredients']
-        read_only_fields=['id']
-    
+        model = Recipe
+        fields = [
+            'id', 'title', 'time_minutes', 'price', 'link', 'tags',
+            'ingredients',
+        ]
+        read_only_fields = ['id']
+
     def _get_or_create_tags(self, tags, recipe):
         """Handle getting or creating tags as needed."""
         auth_user = self.context['request'].user
@@ -47,18 +50,17 @@ class RecipeSerializer(serializers.ModelSerializer):
         for ingredient in ingredients:
             ingredient_obj, created = Ingredient.objects.get_or_create(
                 user=auth_user,
-                **ingredients,
+                **ingredient,
             )
             recipe.ingredients.add(ingredient_obj)
-            
+
     def create(self, validated_data):
         """Create a recipe."""
         tags = validated_data.pop('tags', [])
-        ingredients=validated_data.pop('ingredients',[])
+        ingredients = validated_data.pop('ingredients', [])
         recipe = Recipe.objects.create(**validated_data)
-        
         self._get_or_create_tags(tags, recipe)
-        self._get_or_create_ingredients(ingredients,recipe)
+        self._get_or_create_ingredients(ingredients, recipe)
 
         return recipe
 
@@ -80,7 +82,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         return instance
 
 
-
 class RecipeDetailSerializer(RecipeSerializer):
     #overriding the fields to add the description
     #meta is used to add the fields to the serializer   
@@ -88,6 +89,15 @@ class RecipeDetailSerializer(RecipeSerializer):
         #fields is inherited from the parent class serializer
         fields=RecipeSerializer.Meta.fields+['description']
 
+
+class RecipeImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading images to recipes."""
+
+    class Meta:
+        model = Recipe
+        fields = ['id', 'image']
+        read_only_fields = ['id']
+        extra_kwargs = {'image': {'required': 'True'}}
 
 
 
